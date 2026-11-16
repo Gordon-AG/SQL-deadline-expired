@@ -1,4 +1,4 @@
-# iBank SQL Tests — Selenide & Database Integration (ДЗ 3.2. SQL)
+# SQL Tests — Selenide & Database Integration (ДЗ 3.2. SQL)
 
 Автотесты для интернет-банка с интеграцией с базой данных MySQL: проверка формы авторизации, двухфакторной верификации (с чтением одноразового кода напрямую из БД) и работы со статусами пользователей через паттерн **Page Object** и утилиты `DbUtils`.
 
