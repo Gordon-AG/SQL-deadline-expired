@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+}
+
+group = 'ru.netology'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Lombok (стандартное подключение через зависимости вместо плагина)
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // Основные зависимости для тестирования
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'com.codeborne:selenide:6.19.1'
+    testImplementation 'mysql:mysql-connector-java:8.0.33'
+    testImplementation 'commons-dbutils:commons-dbutils:1.7'
+    testImplementation 'com.github.javafaker:javafaker:1.0.2'
+    testImplementation 'org.slf4j:slf4j-simple:2.0.12'
+}
+
+// Перенесли сюда (вне блока dependencies)
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11) // или 17, в зависимости от установленной у вас JDK
+    }
+}
+
+test {
+    useJUnitPlatform()
+
+    systemProperty 'selenide.baseUrl', 'http://localhost:9999'
+    systemProperty 'chromeoptions.prefs', System.getProperty('chromeoptions.prefs', "profile.password_manager_leak_detection=false")
+    systemProperty 'selenide.headless', System.getProperty('selenide.headless')
+    systemProperty 'file.encoding', 'UTF-8'
+}
