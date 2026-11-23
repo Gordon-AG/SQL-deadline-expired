@@ -1,6 +1,7 @@
 package ru.netology.test;
 
 import com.codeborne.selenide.Configuration;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,18 +10,28 @@ import ru.netology.db.DbUtils;
 import ru.netology.page.LoginPage;
 
 import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.refresh;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // Интеграционные тесты для проверки формы входа и взаимодействия с БД
 public class LoginTest {
 
+    private static final String INVALID_LOGIN_ERROR = "Неверно указан логин или пароль";
+
     // Глобальная настройка Selenide перед запуском тестов
     @BeforeAll
     static void setupAll() {
-        Configuration.headless = true;        // true — без графического интерфейса
+        Configuration.headless = false;        // true — без графического интерфейса
         Configuration.timeout = 10000;        // таймаут ожидания элементов (10 сек)
     }
 
-    // Подготовка окружения перед каждым тестом (очистка БД и открытие SUT)
+    // Полная очистка базы данных после завершения всех тестов
+    @AfterAll
+    static void tearDownAll() {
+        DbUtils.cleanDatabase();
+    }
+
+    // Подготовка окружения перед каждым тестом (очистка временных таблиц и открытие SUT)
     @BeforeEach
     void setup() {
         DbUtils.cleanTables();
@@ -44,21 +55,24 @@ public class LoginTest {
         var loginPage = new LoginPage();
         var invalid = DataHelper.getInvalidAuthInfo();
 
-        // Три неудачные попытки входа подряд
-        loginPage.invalidLogin(invalid);
-        loginPage.invalidLogin(invalid);
-        loginPage.invalidLogin(invalid);
+        // Три неудачные попытки входа подряд с проверкой уведомления и обновлением страницы
+        for (int i = 0; i < 3; i++) {
+            loginPage.invalidLogin(invalid);
+            loginPage.assertErrorMessage(INVALID_LOGIN_ERROR);
+            refresh();
+        }
 
         // Проверка через БД, что статус пользователя остался 'active'
         String actualStatus = DbUtils.getUserStatus(invalid.getLogin());
-        org.junit.jupiter.api.Assertions.assertEquals("active", actualStatus);
+        assertEquals("active", actualStatus);
     }
 
-    // Тест на появление уведомления об ошибке при неверном пароле
+    // Тест на появление уведомления об ошибке при неверных данных входа
     @Test
     void shouldShowErrorForInvalidPassword() {
         var loginPage = new LoginPage();
         var invalid = DataHelper.getInvalidAuthInfo();
         loginPage.invalidLogin(invalid);
+        loginPage.assertErrorMessage(INVALID_LOGIN_ERROR);
     }
 }

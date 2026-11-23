@@ -1,7 +1,6 @@
 package ru.netology.page;
 
 import com.codeborne.selenide.SelenideElement;
-import org.openqa.selenium.Keys;
 import ru.netology.data.DataHelper;
 
 import java.time.Duration;
@@ -10,7 +9,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 
-// Page Object класс для страницы авторизации
+// Класс для страницы авторизации
 public class LoginPage {
     // Элементы формы входа
     private final SelenideElement loginInput = $("[data-test-id=login] input");
@@ -18,33 +17,35 @@ public class LoginPage {
     private final SelenideElement loginButton = $("[data-test-id=action-login]");
     private final SelenideElement errorNotification = $("[data-test-id=error-notification] .notification__content");
 
-    /**
-     * Очистка и корректное заполнение React-инпута через Ctrl+A и Delete.
-     */
+    // Заполнение поля
     private void setFieldValue(SelenideElement field, String value) {
-        field.shouldBe(visible).click();
-        field.sendKeys(Keys.chord(Keys.CONTROL, "a"));
-        field.sendKeys(Keys.DELETE);
-        field.sendKeys(value);
+        field.shouldBe(visible).setValue(value);
+    }
+
+    // Общая логика заполнения формы и отправки данных входа
+    private void submitLogin(DataHelper.AuthInfo info) {
+        setFieldValue(loginInput, info.getLogin());
+        setFieldValue(passwordInput, info.getPassword());
+        loginButton.click();
     }
 
     // Успешный ввод логина/пароля и переход к странице верификации
     public VerificationPage validLogin(DataHelper.AuthInfo info) {
-        setFieldValue(loginInput, info.getLogin());
-        setFieldValue(passwordInput, info.getPassword());
-        loginButton.click();
-        // Ждем появления поля кода для синхронизации с записью в БД
-        $("[data-test-id=code] input").shouldBe(visible);
+        submitLogin(info);
         return new VerificationPage();
     }
 
-    // Ввод неверных данных с проверкой появления ошибки
+    // Ввод неверных данных входа
     public LoginPage invalidLogin(DataHelper.AuthInfo info) {
-        setFieldValue(loginInput, info.getLogin());
-        setFieldValue(passwordInput, info.getPassword());
-        loginButton.click();
-        errorNotification.shouldBe(visible);
+        submitLogin(info);
         return this;
+    }
+
+    // Проверка видимости и текста сообщения об ошибке
+    public void assertErrorMessage(String expectedText) {
+        errorNotification
+                .shouldBe(visible)
+                .shouldHave(text(expectedText));
     }
 
     // Проверка наличия текста блокировки в уведомлении
