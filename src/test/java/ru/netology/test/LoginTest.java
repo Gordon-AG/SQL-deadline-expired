@@ -18,12 +18,7 @@ public class LoginTest {
 
     private static final String INVALID_LOGIN_ERROR = "Неверно указан логин или пароль";
 
-    // Глобальная настройка Selenide перед запуском тестов
-    @BeforeAll
-    static void setupAll() {
-        Configuration.headless = false;        // true — без графического интерфейса
-        Configuration.timeout = 10000;        // таймаут ожидания элементов (10 сек)
-    }
+
 
     // Полная очистка базы данных после завершения всех тестов
     @AfterAll
